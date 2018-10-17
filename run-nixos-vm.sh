@@ -22,7 +22,15 @@ export QEMU_KERNEL_PARAMS=console=ttyS0
 export QEMU_OPTS="-nographic ${QEMU_OPTS}"
 export QEMU_OPTS="-vnc :1 ${QEMU_OPTS}"
 
-export QEMU_NET_OPTS="hostfwd=tcp::8080-:8080,hostfwd=tcp::2222-:22,hostfwd=tcp::3389-:3389"
+# SSH
+export QEMU_NET_OPTS="hostfwd=tcp::2222-:22"
+
+# Tomcat
+export QEMU_NET_OPTS="${QEMU_NET_OPTS},hostfwd=tcp::8081-:8080"
+
+# RDP
+#export QEMU_NET_OPTS="${QEMU_NET_OPTS},hostfwd=tcp::3389-:3389"
+
 ${vm_run_script}
 
 # Stop the vm simply by typing: 'poweroff'.

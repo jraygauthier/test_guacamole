@@ -1,8 +1,8 @@
 { lib, config, pkgs, ... }:
 {
   #services.tor.enable = true;
-  documentation.nixos.enable = false;
-  services.guacamole.enable = true;
+  #documentation.nixos.enable = false;
+  services.nixosManual.enable = false;
   services.mingetty.autologinUser = "root";
   systemd.services."serial-getty@ttyS0".enable = true;
   networking.firewall.enable = false;
@@ -21,44 +21,6 @@
   services.openssh.enable = true;
   services.openssh.passwordAuthentication = true;
   services.openssh.permitRootLogin = "yes";
-
-  # xfreerdp /u:root /p:root /v:localhost:3389
-  environment.systemPackages = with pkgs; [ freerdp tigervnc x11vnc ];
-  services.xrdp.enable = true;
-  #services.xrdp.package = pkgs.freerdpUnstable;
-  #services.xrdp.port = 3389
-  #services.xrdp.defaultWindowManager = "${pkgs.xterm}/bin/xterm";
-
-  /*
-
-  ```bash
-  $ nix-shell -p freerdp -p tigervnc -p x11vnc
-  ```
-
-  ```bash
-
-  $ xfreerdp /u:myuser /p:pw /v:localhost:3389
-  $ xfreerdp /u:myuser /p:pw /v:localhost:3389 /w:640 /h:480 /bpp:8
-  $ xfreerdp /u:myuser /p:pw /v:localhost:3389 /w:640 /h:480 /bpp:8 /monitors:[0]
-  ```
-
-  really does show me an xfce session.
-
-
-  Using `export QEMU_OPTS="-vnc :1 -nographic` option, the following work fine on the host:
-
-  ```bash
-  $ vncviewer localhost:1
-  ```
-
-  See more qemu vnc security options:
-
-   -  [Suse Doc: Virtualization with KVM - Viewing a VM Guest with VNC - September 28 2013](https://www.suse.com/documentation/sles11/book_kvm/data/cha_qemu_running_vnc.html)
-
-  */
-  services.xrdp.defaultWindowManager = "${pkgs.xfce.xfce4-session}/bin/xfce4-session";
-  #services.xrdp.defaultWindowManager = "${pkgs.xfce.xfce4-session}/etc/xdg/xfce4/xinitrc";
-  #networking.firewall.allowedTCPPorts = [ 3389 ];
 
   users = {
 
@@ -97,20 +59,6 @@
   services.xserver = {
     enable = true;
 
-    /*
-    French canadian keyboard does not work.
-     -  [[GUACAMOLE-607] RDP French Canadian - ASF JIRA](https://issues.apache.org/jira/browse/GUACAMOLE-607)
-
-    It does not work either using rdp, vnc or even ssh.
-
-    However it works well in graphical qmu (through its own vnc), but it doesn't using `vncviewer localhost:1`.
-
-    ```bash
-    $ xfreerdp /kbd-list
-    $ xfreerdp /u:rgauthier /v:localhost:3389 /kbd:0x00000C0C
-    ```
-    */
-
     layout = "ca";
     xkbVariant = "fr";
 
@@ -120,6 +68,104 @@
 
 
 
+
+  /*
+
+  ```bash
+  $ nix-shell -p freerdp -p tigervnc -p x11vnc
+  ```
+
+  ```bash
+  $ xfreerdp /u:root /p:root /v:localhost:3389
+  $ xfreerdp /u:myuser /p:pw /v:localhost:3389
+  $ xfreerdp /u:myuser /p:pw /v:localhost:3389 /w:640 /h:480 /bpp:8
+  $ xfreerdp /u:myuser /p:pw /v:localhost:3389 /w:640 /h:480 /bpp:8 /monitors:[0]
+  ```
+
+  really does show me an xfce session.
+
+
+  Using `export QEMU_OPTS="-vnc :1 -nographic` option, the following work fine on the host:
+
+  ```bash
+  $ vncviewer localhost:1
+  ```
+
+  See more qemu vnc security options:
+
+   -  [Suse Doc: Virtualization with KVM - Viewing a VM Guest with VNC - September 28 2013](https://www.suse.com/documentation/sles11/book_kvm/data/cha_qemu_running_vnc.html)
+
+  */
+
+  environment.systemPackages = with pkgs; [ freerdp tigervnc x11vnc ];
+  services.xrdp.enable = true;
+  #services.xrdp.package = pkgs.freerdpUnstable;
+  #services.xrdp.port = 3389
+  #services.xrdp.defaultWindowManager = "${pkgs.xterm}/bin/xterm";
+
+  services.xrdp.defaultWindowManager = "${pkgs.xfce.xfce4-session}/bin/xfce4-session";
+  #services.xrdp.defaultWindowManager = "${pkgs.xfce.xfce4-session}/etc/xdg/xfce4/xinitrc";
+  #networking.firewall.allowedTCPPorts = [ 3389 ];
+
+  /*
+  French canadian keyboard does not work.
+   -  [[GUACAMOLE-607] RDP French Canadian - ASF JIRA](https://issues.apache.org/jira/browse/GUACAMOLE-607)
+
+  It does not work either using rdp, vnc or even ssh.
+
+  However it works well in graphical qmu (through its own vnc), but it doesn't using `vncviewer localhost:1`.
+
+  ```bash
+  $ xfreerdp /kbd-list
+  $ xfreerdp /u:myuser /v:localhost:3389 /kbd:0x00000C0C
+  ```
+
+  ```bash
+  $ nix-shell -I "$HOME/dev/nixpkgs_root" -p xrdp
+  $ which xrdp | xargs dirname | xargs thunar
+  ```
+
+   -  [[ubuntu] XRDP keyboad settings](https://ubuntuforums.org/showthread.php?t=2071308)
+
+      Some commands to generate supplementary layouts.
+
+
+   -  [xrdp - how to change keyboard layout - Ask Ubuntu](https://askubuntu.com/questions/412755/xrdp-how-to-change-keyboard-layout)
+
+
+       -  [rdesktop / Code / [r1704] /rdesktop/trunk/doc/keymap-names.txt](https://sourceforge.net/p/rdesktop/code/1704/tree/rdesktop/trunk/doc/keymap-names.txt)
+
+          `0x0C0C fr-ca French (Canada)`
+
+  ```bash
+  $ `which xrdp | xargs dirname | xargs dirname`/sbin/xrdp-genkeymap km-00000c0c.ini
+  $ meld km-out.ini /nix/store/pkb3y86xlrzr8qw43wxry447z9p9v684-xrdp-0.9.7/etc/xrdp/km-0000040c.ini
+  ```
+
+  */
+
+
+
+  /*
+  Tomcat currently uses port 8080 which can conflict with other apps.
+  Will have to add the feature to `nixos/modules/services/web-servers/tomcat.nix`
+  as it is not yet available. See the following snipet:
+
+  ```
+    -->
+    <Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+    <!-- A "Connector" using the shared thread pool-->
+    <!--
+    <Connector executor="tomcatThreadPool"
+               port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+  ```
+  */
+
+  services.guacamole.enable = true;
 
   services.guacamole.propertiesText = ''
     auth-provider: net.sourceforge.guacamole.net.basic.BasicFileAuthenticationProvider
@@ -143,10 +189,38 @@
 
   #services.guacamole.userMappingFile = "${pkgs.bash}/bin/my_file.txt";
 
+  /*
+    Generate hashed password using:
+
+     -  encoding="sha512"
+
+        `mkpasswd -m sha-512` -> does not work.
+
+        ```bash
+        $ echo -n "pw" | sha512sum`
+        be196838736ddfd0007dd8b2e8f46f22d440d4c5959925cb49135abc9cdb01e84961aa43dd0ddb6ee59975eb649280d9f44088840af37451828a6412b9b574fc
+        ```
+
+        -> no, still does not work.
+
+     -  encoding="md5"
+
+        `mkpasswd -m md5` -> does not work.
+
+        ```bash
+        $ echo -n "pw" | md5sum
+        8fe4c11451281c094a6578e6ddbf5eed
+        ```
+        -> ok, works.
+
+
+  */
   services.guacamole.userMappingText = ''
     <user-mapping>
-        <authorize username="user"
-            password="pw">
+        <authorize
+            username="user"
+            password="8fe4c11451281c094a6578e6ddbf5eed"
+            encoding="md5">
     	    <connection name="ssh - root">
               <protocol>ssh</protocol>
               <param name="username">root</param>
@@ -159,6 +233,14 @@
               <param name="username">myuser</param>
               <param name="password">pw</param>
               <param name="hostname">localhost</param>
+              <param name="port">3389</param>
+              <param name="server-layout">en-ca-qwerty</param>
+              <param name="ignore-cert">true</param>
+          </connection>
+          <connection name="rdp - on host">
+              <protocol>rdp</protocol>
+              <param name="security">any</param>
+              <param name="hostname">10.0.2.2</param>
               <param name="port">3389</param>
               <param name="server-layout">en-ca-qwerty</param>
               <param name="ignore-cert">true</param>
