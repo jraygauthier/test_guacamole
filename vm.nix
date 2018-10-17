@@ -104,6 +104,11 @@
     It does not work either using rdp, vnc or even ssh.
 
     However it works well in graphical qmu (through its own vnc), but it doesn't using `vncviewer localhost:1`.
+
+    ```bash
+    $ xfreerdp /kbd-list
+    $ xfreerdp /u:rgauthier /v:localhost:3389 /kbd:0x00000C0C
+    ```
     */
 
     layout = "ca";
