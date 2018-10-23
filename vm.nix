@@ -140,9 +140,90 @@
   ```bash
   $ `which xrdp | xargs dirname | xargs dirname`/sbin/xrdp-genkeymap km-00000c0c.ini
   $ meld km-out.ini /nix/store/pkb3y86xlrzr8qw43wxry447z9p9v684-xrdp-0.9.7/etc/xrdp/km-0000040c.ini
+
+  $ mkdir ../xrdp_cfg && cp -r -t ../xrdp_cfg/ /nix/store/pkb3y86xlrzr8qw43wxry447z9p9v684-xrdp-0.9.7/etc/xrdp/*.*
+  $ `which xrdp | xargs dirname | xargs dirname`/sbin/xrdp-genkeymap ../xrdp_cfg/km-00000c0c.ini
+  $ xrdp-keygen xrdp ../xrdp_cfg/rsakeys.ini
   ```
 
+  ```bash
+  $ sudo xrdp -n --config $HOME/dev/xrdp_cfg/xrdp.ini
+  # ...
+  [20181019-21:27:24] [INFO ] Loading keymap file /home/rgauthier/dev/xrdp_cfg/km-00000c0c.ini
+  [20181019-21:27:24] [WARN ] local keymap file for 0x00000c0c found and doesn't match built in keymap, using local keymap file
+  # ...
+  ```
+
+  ```bash
+  $ sudo xrdp-sesman --nodaemon --config $HOME/dev/xrdp_cfg/sesman.ini
+  [20181019-21:37:00] [INFO ] A connection received from ::ffff:127.0.0.1 port 46824
+  pam_authenticate failed: Authentication failure
+  [20181019-21:37:00] [DEBUG] Closed socket 8 (AF_INET6 ::ffff:127.0.0.1 port 3350)
+  ```
+
+   -  [[GUACAMOLE-352] Add support for dead keys - ASF JIRA](https://issues.apache.org/jira/browse/GUACAMOLE-352)
+
+      Seems that it should only work in upcoming V1.
+
+      This is what explains our issues with ssh session. The keymap is correct but for
+      the dead keys. This is a front end issue.
+
+   -  [XRDP Devel - [Xrdp-devel] alt+gr key not working for german keyboard](http://xrdp-devel.766250.n3.nabble.com/Xrdp-devel-alt-gr-key-not-working-for-german-keyboard-td4025717.html)
+
+      With the special keymap file, when entering
+      the session, simply typeing `setxkbmap ca` in
+      a terminal makes the keyboard work fine using xfreerdp client. It however does not
+      work at all using guacamole.
+
+
+
+
+   -  [[GUACAMOLE-233] Add Spanish keymap for RDP - ASF JIRA](https://issues.apache.org/jira/browse/GUACAMOLE-233)
+
+   -  [[GUAC-1362] Special characters via XRDP / German keyboard layout / Keyboard translation - Glyptodon, Inc. JIRA](https://jira.glyptodon.org/browse/GUAC-1362?jql=text%20~%20%22layout%22)
+
+   -  [[GUAC-208] xrdp german keyboard layout - Glyptodon, Inc. JIRA](https://jira.glyptodon.org/browse/GUAC-208?jql=text%20~%20%22layout%22)
+
+   -  [[GUAC-1192] x11rdp connections cannot use capslock or control keys. - Glyptodon, Inc. JIRA](https://jira.glyptodon.org/browse/GUAC-1192?jql=text%20~%20%22layout%22)
+
+   -  [[GUAC-659] Not all keys work on non-US keyboards - Glyptodon, Inc. JIRA](https://jira.glyptodon.org/browse/GUAC-659?jql=text%20~%20%22layout%22)
+
+
+  > qemu-system-x86_64: warning: no scancode found for keysym 233
+
+   -  [Bug 1503128 – update reverse keymaps for qemu vnc server](https://bugzilla.redhat.com/show_bug.cgi?id=1503128)
+
+
+  It seems that guacamole rdp only builds with the legacy 1.2 freerdp client. It won't work with
+  the V2.0.
+
+   -  [[GUACAMOLE-249] Update RDP plugin support to 2.0.0 releases - ASF JIRA](https://issues.apache.org/jira/browse/GUACAMOLE-249?jql=text%20~%20%22freerdp%22)
+
+
+  It seems that xrdp does not support *Unicode events*:
+
+   -  [Parallels Client is not able to RDP to xRDP · Issue #439 · neutrinolabs/xrdp](https://github.com/neutrinolabs/xrdp/issues/439#issuecomment-253577643)
+
+   -  [[GUAC-1362] Special characters via XRDP / German keyboard layout / Keyboard translation - Glyptodon, Inc. JIRA](https://jira.glyptodon.org/browse/GUAC-1362)
+
+   -  [Issues · neutrinolabs/xrdp](https://github.com/neutrinolabs/xrdp/issues?utf8=%E2%9C%93&q=is%3Aissue+unicode)
+
+   -  [Releases · neutrinolabs/xrdp](https://github.com/neutrinolabs/xrdp/releases)
+
+      V0.9.8 is release. Nixpkgs at 0.9.7.
+
+  Guacamole does not have a fr-ca key map for rdp.
+
+
+   -  [guacamole-server/src/protocols/rdp/keymaps at master · apache/guacamole-server](https://github.com/apache/guacamole-server/tree/master/src/protocols/rdp/keymaps)
+
+       -  [guacamole-server/fr_ch_qwertz.keymap at master · apache/guacamole-server](https://github.com/apache/guacamole-server/blob/master/src/protocols/rdp/keymaps/fr_ch_qwertz.keymap)
+
+          Inspiration.
+
   */
+
+
 
 
 
@@ -237,12 +318,28 @@
               <param name="server-layout">en-ca-qwerty</param>
               <param name="ignore-cert">true</param>
           </connection>
-          <connection name="rdp - on host">
+          <connection name="rdp - on host - en-ca-qwerty">
               <protocol>rdp</protocol>
               <param name="security">any</param>
               <param name="hostname">10.0.2.2</param>
               <param name="port">3389</param>
               <param name="server-layout">en-ca-qwerty</param>
+              <param name="ignore-cert">true</param>
+          </connection>
+          <connection name="rdp - on host - failsafe">
+              <protocol>rdp</protocol>
+              <param name="security">any</param>
+              <param name="hostname">10.0.2.2</param>
+              <param name="port">3389</param>
+              <param name="server-layout">failsafe</param>
+              <param name="ignore-cert">true</param>
+          </connection>
+          <connection name="rdp - on host - fr-ca-qwerty">
+              <protocol>rdp</protocol>
+              <param name="security">any</param>
+              <param name="hostname">10.0.2.2</param>
+              <param name="port">3389</param>
+              <param name="server-layout">fr-ca-qwerty</param>
               <param name="ignore-cert">true</param>
           </connection>
           <connection name="rdp - myuser - lowres">
