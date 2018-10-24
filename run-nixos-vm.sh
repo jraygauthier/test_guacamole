@@ -29,7 +29,7 @@ export QEMU_NET_OPTS="hostfwd=tcp::2222-:22"
 export QEMU_NET_OPTS="${QEMU_NET_OPTS},hostfwd=tcp::8081-:8080"
 
 # RDP
-#export QEMU_NET_OPTS="${QEMU_NET_OPTS},hostfwd=tcp::3389-:3389"
+export QEMU_NET_OPTS="${QEMU_NET_OPTS},hostfwd=tcp::33389-:3389"
 
 ${vm_run_script}
 
