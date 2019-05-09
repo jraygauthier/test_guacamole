@@ -97,7 +97,10 @@
 
   */
 
-  environment.systemPackages = with pkgs; [ freerdp tigervnc x11vnc ];
+  environment.systemPackages = with pkgs; [
+    freerdp tigervnc x11vnc
+    xorg.xmodmap
+  ];
   services.xrdp.enable = true;
   #services.xrdp.package = pkgs.freerdpUnstable;
   #services.xrdp.port = 3389

@@ -21,6 +21,10 @@ export QEMU_OPTS="-m 1G -serial mon:stdio"
 export QEMU_KERNEL_PARAMS=console=ttyS0
 export QEMU_OPTS="-nographic ${QEMU_OPTS}"
 export QEMU_OPTS="-vnc :1 ${QEMU_OPTS}"
+shared_dir="$PWD/shared_dir"
+mkdir -p "$shared_dir"
+# export QEMU_OPTS="-virtfs local,path=${shared_dir},mount_tag=host0,security_model=passthrough,id=host0 ${QEMU_OPTS}"
+export QEMU_OPTS="-virtfs local,path=${shared_dir},security_model=none,mount_tag=host0_shared_dir ${QEMU_OPTS}"
 
 # SSH
 export QEMU_NET_OPTS="hostfwd=tcp::2222-:22"

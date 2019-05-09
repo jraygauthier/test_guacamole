@@ -1,5 +1,13 @@
 { lib, config, pkgs, ... }:
 {
+  fileSystems = lib.mkVMOverride {
+    "/root/shared_dir" = {
+        device = "host0_shared_dir";
+        fsType = "9p";
+        options = [ "trans=virtio" "version=9p2000.L" ];
+    };
+  };
+
   #services.tor.enable = true;
   #documentation.nixos.enable = false;
   services.nixosManual.enable = false;
@@ -67,7 +75,10 @@
   };
 
 
-  environment.systemPackages = with pkgs; [ freerdp tigervnc x11vnc ];
+  environment.systemPackages = with pkgs; [
+    freerdp tigervnc x11vnc
+    xorg.xmodmap
+  ];
   services.xrdp.enable = true;
   services.xrdp.defaultWindowManager = "${pkgs.xfce.xfce4-session}/bin/xfce4-session";
   #services.xrdp.defaultWindowManager = "${pkgs.xfce.xfce4-session}/etc/xdg/xfce4/xinitrc";
